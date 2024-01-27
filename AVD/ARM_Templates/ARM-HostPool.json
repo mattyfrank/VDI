@@ -1,0 +1,237 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "env": {
+      "type": "string",
+      "metadata": {
+          "description": "Environment"
+      },
+      "allowedValues": [
+        "prod",
+        "nonprod"
+      ]
+    },
+    "hostpoolName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Hostpool to be created."
+      }
+    },
+    "hostpoolFriendlyName": {
+      "type": "string",
+      "metadata": {
+        "description": "The friendly name of the Hostpool to be created."
+      },
+      "defaultValue": ""
+    },
+    "hostpoolDescription": {
+      "type": "string",
+      "metadata": {
+        "description": "The description of the Hostpool to be created."
+      },
+      "defaultValue": ""
+    },
+    "hostpoolType": {
+      "type": "string",
+      "allowedValues": [
+        "Personal",
+        "Pooled"
+      ],
+      "metadata": {
+        "description": "Set this parameter to Personal if you would like to enable Persistent Desktop experience. Defaults to false."
+      }
+    },
+    "personalDesktopAssignmentType": {
+      "type": "string",
+      "allowedValues": [
+        "Automatic",
+        "Direct",
+        ""
+      ],
+      "metadata": {
+        "description": "Set the type of assignment for a Personal hostpool type"
+      },
+      "defaultValue": ""
+    },
+    "maxSessionLimit": {
+      "type": "int",
+      "metadata": {
+        "description": "Maximum number of sessions."
+      },
+      "defaultValue": 99999
+    },
+    "loadBalancerType": {
+      "type": "string",
+      "allowedValues": [
+        "BreadthFirst",
+        "DepthFirst",
+        "Persistent"
+      ],
+      "metadata": {
+        "description": "Type of load balancer algorithm."
+      },
+      "defaultValue": "DepthFirst"
+    },
+    "customRdpProperty": {
+      "type": "string",
+      "metadata": {
+        "description": "Hostpool RDP properties"
+      },
+      "defaultValue": ""
+    },
+    "baseTime": {
+      "type": "string",
+      "defaultValue": "[utcNow('u')]",
+      "metadata": {
+          "description": "Set base time to UTC"
+      }
+    },
+    "tokenExpirationTime": {
+      "type": "string",
+      "metadata": {
+        "description": "Schedule will start one hour from this time."
+      },
+      "defaultValue": "[dateTimeAdd(parameters('baseTime'), 'PT72H')]"
+    },
+    "preferredAppGroupType": {
+      "type": "string",
+      "metadata": {
+        "description": "Preferred App Group type to display"
+      },
+      "allowedValues": [
+        "Desktop",
+        "RailApplications"
+      ],
+      "defaultValue": "Desktop"
+    },
+    "startVMOnConnect": {
+      "type": "bool",
+      "metadata": {
+        "description": "Whether to use validation environment."
+      },
+      "defaultValue": false
+    },
+    "maintenanceDayOfWeek": {
+      "type": "string",
+      "metadata": {
+        "description": "Day of week to update SessionHost Agent"
+      },
+      "allowedValues": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "defaultValue": "Sunday"
+    },
+    "maintenanceTimeOfDay": {
+      "type": "int",
+      "metadata": {
+        "description": "Hour of day to update SessionHost Agents"
+      },
+      "defaultValue": 15
+    },
+    "hostpoolDiagnosticSettingsStorageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "The storage uri to put the diagnostic logs"
+      },
+      "defaultValue": ""
+    },
+    "hostpoolDiagnosticSettingsLogAnalyticsWorkspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The description of the Hostpool to be created."
+      },
+      "defaultValue": ""
+    },
+    "hostpoolDiagnosticSettingsEventHubName": {
+      "type": "string",
+      "metadata": {
+        "description": "The event hub name to send logs to"
+      },
+      "defaultValue": ""
+    },
+    "hostpoolDiagnosticSettingsEventHubAuthorizationId": {
+      "type": "string",
+      "metadata": {
+        "description": "The event hub policy to use"
+      },
+      "defaultValue": ""
+    },
+    "hostpoolDiagnosticSettingsLogCategories": {
+      "type": "array",
+      "metadata": {
+        "description": "Categories of logs to be created for hostpools"
+      },
+      "defaultValue": [    
+        "Checkpoint",
+        "Error",
+        "Management",
+        "Connection",
+        "HostRegistration",
+        "AgentHealthStatus"
+      ]
+    },
+    "validationEnvironment": {
+      "type": "bool",
+      "metadata": {
+        "description": "Whether to use validation environment."
+      },
+      "defaultValue": false
+    }
+  },
+  "variables": {
+    "tags": {
+      "description": "Azure Virtual Desktop",
+      "team": "VDI_Team",
+      "env": "[parameters('env')]",
+      "managedBy": "PowerShell"
+    },
+    //"Personal": "[if(equals(parameters('hostpoolType'), 'Personal'), parameters('startVMOnConnect'), bool('true'))]"
+    //default to false, if HostPoolType=Personal = true
+    "startVMOnConnect": "[if(equals(parameters('hostpoolType'), 'Personal'), parameters('startVMOnConnect'), bool('true'))]"
+  },
+  "resources": [  
+    {
+      "type": "Microsoft.DesktopVirtualization/hostPools",
+      "apiVersion": "2022-10-14-preview",
+      "name": "[parameters('hostpoolName')]",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tags')]",
+      "properties": {
+        "agentUpdate": {
+          "maintenanceWindows": [
+            {
+              "dayOfWeek": "[parameters('maintenanceDayOfWeek')]",
+              "hour": "[parameters('maintenanceTimeOfDay')]"
+            }
+          ],
+          "useSessionHostLocalTime": true,
+          "maintenanceWindowTimeZone": "Pacific Standard Time",
+          "type": "Scheduled"
+        },
+        "customRdpProperty": "[parameters('customRdpProperty')]",
+        "description": "[parameters('hostpoolDescription')]",
+        "friendlyName": "[parameters('hostpoolFriendlyName')]",
+        "hostPoolType": "[parameters('hostpoolType')]",
+        "loadBalancerType": "[parameters('loadBalancerType')]",
+        "maxSessionLimit": "[parameters('maxSessionLimit')]",
+        "personalDesktopAssignmentType": "[parameters('personalDesktopAssignmentType')]",
+        "preferredAppGroupType": "[parameters('preferredAppGroupType')]",
+        "registrationInfo": {
+          "expirationTime": "[parameters('tokenExpirationTime')]",
+          "token": null,
+          "registrationTokenOperation": "Update"
+        },
+        "ring": null,
+        "startVMOnConnect": "[parameters('startVMOnConnect')]",
+        "validationEnvironment": "[parameters('validationEnvironment')]"
+      }
+    }
+  ]
+}

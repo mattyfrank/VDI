@@ -1,0 +1,496 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment"
+            },
+            "allowedValues": [
+                "nonprod",
+                "prod"
+            ],
+            "defaultValue": "nonprod"
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Name"
+            },
+            "maxLength": 15
+        },
+        "userEmail": {
+            "type": "string",
+            "metadata": {
+                "description": "Email Address in UPN Format"
+            },
+            "defaultValue": ""
+        },
+        "subnetID": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Subnet ID"
+            }
+        },
+        "imageID": {
+            "type": "string",
+            "metadata": {
+                "description": "Source Image ID"
+            }
+        },
+        "localPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Local Admin Password"
+            }
+        },
+        "domainJoinPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Domain User Password"
+            }
+        },
+        "ouPath": {
+            "type": "string",
+            "metadata": {
+                "description": "AD OU in DistinguishedName Format"
+            }
+        },
+        "hostPoolToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "AVD Host Pool Registration Token"
+            }
+        },
+        "hostPoolName": {
+            "type": "string",
+            "metadata": {
+                "description": "AVD Host Pool Name"
+            }
+        },
+        "avdAgentURL": {
+            "type": "string",
+            "metadata": {
+                "description": "URL for AVD Source Files"
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Storage Account Name"
+            }
+        },
+        "storageAccountKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Azure Storage Key"
+            }
+        },
+        "vmScriptBlobURL": {
+            "type": "string",
+            "metadata": {
+                "description": "URL for Deployment Script"
+            }
+        },
+        "locationName": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Region"
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "vmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "AZ VM Profile Size"
+            },
+            "allowedValues": [
+                "Standard_B2ms",
+                "Standard_D2s_v5",
+                "Standard_D2as_v5",
+                "Standard_D4s_v5",
+                "Standard_D4as_v5",
+                "Standard_D8s_v5",
+                "Standard_D8as_v5"
+            ],
+            "defaultValue": "Standard_B2ms"
+        },
+        "diskType": {
+            "type": "string",
+            "metadata": {
+                "description": "AZ VM Storage Type"
+            },
+            "allowedValues": [
+                "Standard_LRS",
+                "StandardSSD_LRS"
+            ],
+            "defaultValue": "Standard_LRS"
+        },
+        "autoShutdownStatus": {
+            "type": "string",
+            "metadata": {
+                "description": "Auto Shutdown Status"
+            },
+            "defaultValue": "Disabled"
+        },
+        "autoShutdownTime": {
+            "type": "string",
+            "metadata": {
+                "description": "Auto Shutdown Time"
+            },
+            "defaultValue": "2100"
+        },
+        "autoShutdownTimeZone": {
+            "type": "string",
+            "metadata": {
+                "description": "Auto Shutdown Time Zone"
+            },
+            "defaultValue": "Pacific Standard Time"
+        },
+        "autoShutdownNotificationStatus": {
+            "type": "string",
+            "metadata": {
+                "description": "Auto Shutdown Notification Status"
+            },
+            "defaultValue": "Disabled"
+        },
+        "autoShutdownNotificationWebhookUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "Auto Shutdown Notification Web Hook"
+            },
+            "defaultValue": ""
+        },
+        "bootDiagnostics": {
+            "type": "bool",
+            "metadata": {
+                "description": "Boot Diagnostics Status"
+            },
+            "defaultValue": true
+        },
+        "workspaceId":{
+            "type": "string",
+            "metadata": {
+                "description": "Workspace Agent"
+            },
+            "defaultValue":""
+        },
+        "workspaceKey":{
+            "type": "securestring",
+            "defaultValue":""
+        },
+        "localAdmin": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Local Admin User Name"
+            },
+            "defaultValue": "AVDadmin"
+        },
+        "domainJoinUser": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Account to Join Domain"
+            },
+            "defaultValue": ""
+        },
+        "domainName": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain Name"
+            },
+            "defaultValue": ""
+        },
+        "deploymentID": {
+            "type": "string",
+            "metadata": {
+                "description": "CM Schedule Task Provisioning ID"
+            },
+            "defaultValue": ""
+        }
+    },
+    "variables": {
+        "tags": {
+            "description": "Azure Virtual Desktop",
+            "team": "VDI_Team",
+            "env": "[parameters('env')]",
+            "user": "[parameters('userEmail')]"
+        },
+        "nic_name": "[concat(parameters('vmName'), '-nic')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "name": "[variables('nic_name')]",
+            "dependsOn": [],
+            "location": "[parameters('locationName')]",
+            "metadata": {
+                "description": "VM Network Card"
+            },
+            "tags": "[variables('tags')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "internal",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[parameters('subnetId')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('vmName'))]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nic_name'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Domain Join VM Extension",
+                "comment": "Depends on Network Card"
+            },
+            "tags": "[variables('tags')]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "id": "[parameters('imageID')]"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "deleteOption": "Delete",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('diskType')]"
+                        }
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[concat(parameters('vmName'))]",
+                    "adminUsername": "[parameters('localAdmin')]",
+                    "adminPassword": "[parameters('localPassword')]",
+                    "windowsConfiguration": {
+                        "timeZone": "Pacific Standard Time"
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "licenseType": "Windows_Client",
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nic_name'))]",
+                            "properties": {
+                                "deleteOption": "Delete"
+                            }
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "[parameters('bootDiagnostics')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('vmName'), '/', parameters('vmName'), '-domainJoin')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Domain Join VM Extension",
+                "comment": "Depends on Virtual Machine"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "JsonADDomainExtension",
+                "typeHandlerVersion": "1.3",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "Name": "[parameters('domainName')]",
+                    "ouPath": "[parameters('ouPath')]",
+                    "User": "[parameters('domainJoinUser')]",
+                    "Restart": "true",
+                    "Options": "3"
+                },
+                "protectedSettings": {
+                    "Password": "[parameters('domainJoinPassword')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DevTestLab/schedules",
+            "apiVersion": "2018-09-15",
+            "name": "[concat('shutdown-computevm-', parameters('vmName'))]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/', parameters('vmName'),'-domainJoin')]"
+            ],
+            "location": "[parameters('locationName')]",
+            "metadata": {
+                "description": "Auto Shutdown VM Extension",
+                "comment": "Depends on Domain Join Extension"
+            },
+            "properties": {
+                "status": "[parameters('autoShutdownStatus')]",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "[parameters('autoShutdownTime')]"
+                },
+                "timeZoneId": "[parameters('autoShutdownTimeZone')]",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',concat(parameters('vmName')))]",
+                "notificationSettings": {
+                    "status": "[parameters('autoShutdownNotificationStatus')]",
+                    "timeInMinutes": 30,
+                    "emailRecipient": "[parameters('userEmail')]",
+					"webhookUrl": "[parameters('autoShutdownNotificationWebhookUrl')]"
+                }
+            }
+        },
+        // {
+        //     "type": "Microsoft.Resources/deploymentScripts",
+        //     "apiVersion": "2020-10-01",
+        //     "kind": "AzurePowerShell",
+        //     "name": "[concat(parameters('vmName'), '-WaitSection')]",
+        //     "location": "[parameters('locationName')]",
+        //     "metadata": {
+        //         "description": "Deployment Script Extension",
+        //         "comment": "Depends on Domain Join, wait 5 min for domain join to finish"
+        //     },
+        //     "dependsOn": [
+        //         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/', parameters('vmName'),'-domainJoin')]"
+        //     ],
+        //     "properties": {
+        //         "azPowerShellVersion": "3.0",
+        //         "scriptContent": "start-sleep -Seconds 300",
+        //         "cleanupPreference": "Always",
+        //         "retentionInterval": "PT1H"
+        //     }
+        // },
+		{
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"apiVersion": "2020-06-01",
+			"name": "[concat(parameters('vmName'), '/AzureMonitorWindowsAgent')]",
+			"location": "[parameters('locationName')]",
+			"dependsOn": [
+				// "[concat('Microsoft.Resources/deploymentScripts/', parameters('vmName'), '-WaitSection')]"
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/', parameters('vmName'),'-domainJoin')]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Monitor",
+				"type": "AzureMonitorWindowsAgent",
+				"typeHandlerVersion": "1.0",
+				"autoUpgradeMinorVersion": true,
+				"enableAutomaticUpgrade":true
+			}
+		},
+		{
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"apiVersion": "2020-06-01",
+			"name": "[concat(parameters('vmName'), '/DAextension')]",
+			"location": "[parameters('locationName')]",
+			"dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/AzureMonitorWindowsAgent')]"
+			],
+
+				"properties": {
+					"publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+					"type": "DependencyAgentWindows",
+					"typeHandlerVersion": "9.5",
+					"autoUpgradeMinorVersion": true,
+					"enableAutomaticUpgrade":true
+				}
+		},
+		{
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"apiVersion": "2020-06-01",
+			"name": "[concat(parameters('vmName'), '/Microsoft.Insights.LogAnalyticsAgent')]",
+			"location": "[parameters('locationName')]",
+			"dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions//DAextension')]"
+			],
+			"properties": {
+				"publisher": "Microsoft.EnterpriseCloud.Monitoring",
+				"type": "MicrosoftMonitoringAgent",
+				"typeHandlerVersion": "1.0",
+				"settings": {
+					"workspaceId": "[parameters('workspaceId')]"
+				},
+				"protectedSettings": {
+					"workspaceKey": "[parameters('workspaceKey')]"
+				}
+			}
+		},
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('vmName'), '/ccmsetup')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Insights.LogAnalyticsAgent')]"
+            ],
+            "location": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Custom Script VM Extension",
+                "comment": "Depends on Wait Section, installs CM with Task Sequence Provision ID"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File cmbootstrap.ps1',' -ProvisionID ', parameters('deploymentID'))]"
+                },
+                "protectedSettings": {
+                    "storageAccountName": "[parameters('storageAccountName')]",
+                    "storageAccountKey": "[parameters('storageAccountKey')]",
+                    "fileUris": [
+                        "[parameters('vmScriptBlobURL')]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('vmName'), '/dscextension')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/ccmsetup')]"
+            ],
+            "location": "[parameters('locationName')]",
+            "metadata": {
+                "description": "DSC VM Extension",
+                "comment": "Depends on CM Setup, installs AVD agents and join Host Pool"
+            },
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.83",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "modulesUrl": "[parameters('avdAgentURL')]",
+                    "configurationFunction": "Configuration.ps1\\AddSessionHost"
+                },
+                "protectedSettings": {
+                    "properties": {
+                        "hostPoolName": "[parameters('hostPoolName')]",
+                        "registrationInfoToken": "[parameters('hostPoolToken')]"
+                    }
+                }
+            }
+        }
+    ]
+}

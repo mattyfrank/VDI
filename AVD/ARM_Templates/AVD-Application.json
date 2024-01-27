@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "env": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment"
+            },
+            "allowedValues": [
+                "nonprod",
+                "prod"
+            ],
+            "defaultValue": "nonprod"
+        },
+        "AppName": {
+            "type": "string",
+            "metadata": {"description": "Application Name"}
+        },
+        "AppType": {
+            "type": "string",
+            "allowedValues": [
+                "InBuilt",
+                "MsixApplication"
+            ],
+            "defaultValue": "InBuilt"
+        },
+        "AppFilePath": {
+            "type": "string"
+        },
+        "CommandLineSetting": {
+            "type": "string",
+            "allowedValues": [
+                "DoNotAllow",
+                "Allow",
+                "Require"
+            ],
+            "defaultValue": "DoNotAllow"
+        },
+        "CommandLineArgs": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "AppDescription": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "AppFriendlyName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "IconIndex": {
+            "type": "int",
+            "defaultValue": 0
+        },
+        "IconPath": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "AppGroupName": {
+            "type": "string",
+            "metadata": {"description": "Application Group Name"}
+        }                                   
+    },
+    "variables": {    
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DesktopVirtualization/applicationGroups/applications",
+            "apiVersion": "2022-10-14-preview",
+            "name": "[concat(parameters('AppGroupName'), '/', parameters('AppName'))]",
+            "properties": {
+                "applicationType": "[parameters('AppType')]",
+                "commandLineArguments": "[parameters('CommandLineArgs')]",
+                "commandLineSetting": "[parameters('CommandLineSetting')]",
+                "description": "[parameters('AppDescription')]",
+                "filePath": "[parameters('AppFilePath')]",
+                "friendlyName": "[parameters('AppFriendlyName')]",
+                "iconIndex": "[parameters('IconIndex')]",
+                "iconPath": "[parameters('IconPath')]",
+                "showInPortal": true
+            }
+        }
+    ]
+}

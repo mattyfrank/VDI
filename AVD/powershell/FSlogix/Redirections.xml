@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--https://docs.microsoft.com/en-us/fslogix/manage-profile-content-cncpt#redirectionsxml-->
+<FrxProfileFolderRedirection ExcludeCommonFolders="0">
+  <Excludes>
+    <!--Omit if folder is redirected to the network-->
+    <Exclude Copy="0">Downloads</Exclude>
+    <!--Office add-ins and other apps. May impact performance of some apps-->
+    <Exclude Copy="0">AppData\Local\Apps</Exclude>
+    <!--May break per-user installed apps-->
+    <Exclude Copy="0">AppData\Local\Downloaded Installations</Exclude>
+    <!--May impact performance of .NET apps-->
+    <Exclude Copy="0">AppData\Local\Assembly</Exclude>
+    <!--Only include if the JRE is in the environment. May impact performance of Java apps-->
+    <Exclude Copy="0">AppData\Local\Sun</Exclude>
+    <!--Omit if you don't see this path in your environment-->
+    <Exclude Copy="0">AppData\Local\CrashDumps</Exclude>
+    <!--Omit if not using Remote Desktop Connection client inside a remote desktop-->
+    <Exclude Copy="0">AppData\Local\Microsoft\Terminal Server Client</Exclude>
+    <!--Google Chrome brower cache-->
+    <Exclude Copy="0">AppData\Local\Google\Chrome\User Data\Default\Cache</Exclude>
+    <!--Microsoft Edge UWP browser cache-->
+    <Exclude Copy="0">AppData\Local\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache</Exclude>
+    <!--Microsoft Edge (Chromium) cache-->
+    <Exclude Copy="0">AppData\Local\Microsoft\Edge SxS\User Data\Default\Cache</Exclude>
+    <!--Details here https://docs.microsoft.com/en-us/microsoftteams/teams-for-vdi#teams-cached-content-exclusion-list-for-non-persistent-setup-->
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Teams\media-stack</Exclude>
+    <!--Only include if the JRE is in the environment. May impact performance of Java apps-->
+    <Exclude Copy="0">AppData\Roaming\Sun\Java\Deployment\cache</Exclude>
+  </Excludes>
+  <Includes />
+</FrxProfileFolderRedirection>

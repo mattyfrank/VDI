@@ -1,0 +1,283 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultvalue": "westus2"
+        },
+        //required
+        "storageAccountName": {
+            "type": "string"
+        },
+        //required
+        "userEmail":{
+            "type":"string"
+        },
+        "env" : {
+            "type": "string",
+            "defaultValue": "nonprod"
+        },
+        "accountType": {
+            "type": "string",
+            "defaultvalue":"Standard_LRS"
+        },
+        "kind": {
+            "type": "string",
+            "defaultvalue": "StorageV2"
+        },
+        "accessTier": {
+            "type": "string",
+            "defaultvalue": "Hot"
+        },
+        "minimumTlsVersion": {
+            "type": "string",
+            "defaultvalue": "TLS1_2"
+        },
+        "supportsHttpsTrafficOnly": {
+            "type": "bool",
+            "defaultvalue": true
+        },
+        "allowBlobPublicAccess": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "allowSharedKeyAccess": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "allowCrossTenantReplication": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "defaultOAuth": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "networkAclsBypass": {
+            "type": "string",
+            "defaultvalue": "AzureServices"
+        },
+        "networkAclsDefaultAction": {
+            "type": "string",
+            "defaultvalue": "Deny"
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultvalue": ""
+        },
+        "networkAclsVirtualNetworkRules": {
+            "type": "array",
+            "defaultvalue": []
+        },
+        "keySource": {
+            "type": "string",
+            "defaultvalue": "Microsoft.Storage"
+        },
+        "encryptionEnabled": {
+            "type": "bool",
+            "defaultvalue": true
+        },
+        "keyTypeForTableAndQueueEncryption": {
+            "type": "string",
+            "defaultvalue": "Account"
+        },
+        "infrastructureEncryptionEnabled": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "isContainerRestoreEnabled": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "isBlobSoftDeleteEnabled": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "isContainerSoftDeleteEnabled": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "changeFeed": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "isVersioningEnabled": {
+            "type": "bool",
+            "defaultvalue": false
+        },
+        "isShareSoftDeleteEnabled": {
+            "type": "bool",
+            "defaultvalue": false
+        }
+    },
+    "variables": {
+        "tags": {
+            "createdby": "[parameters('userEmail')]",
+            "appid": "Azure Virtual Desktop",
+            "description": "Azure Virtual Desktop",
+            "env": "[parameters('env')]"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-05-01",
+            "type": "Microsoft.Resources/deployments",
+            "name": "virtualNetworks_0.8729947271180729",
+            "subscriptionId": "[parameters('subscriptionId')]",
+            "resourceGroup": "Subscription_Network_RG",
+            "dependsOn": [],
+            "resources": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {},
+                "template": {
+                    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2020-11-01",
+                            "name": "internal-network",
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "location": "eastus",
+                            "properties": {
+                                "provisioningState": "Succeeded",
+                                "resourceGuid": "37f7cef5-894f-4191-9a4c-5cc178594075",
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "10.10.10.0/25"
+                                    ]
+                                },
+                                "dhcpOptions": {
+                                    "dnsServers": [
+                                        "10.10.10.10",
+                                        "10.10.10.20"
+                                    ]
+                                },
+                                "subnets": [
+                                ],
+                                "virtualNetworkPeerings": [
+                                ],
+                                "enableDdosProtection": false
+                            },
+                            "tags": "[variables('tags')]"
+                        }
+                    ],
+                    "outputs": {}
+                }
+            }
+        },
+        {
+            "name": "[parameters('storageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2021-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accessTier": "[parameters('accessTier')]",
+                "minimumTlsVersion": "[parameters('minimumTlsVersion')]",
+                "supportsHttpsTrafficOnly": "[parameters('supportsHttpsTrafficOnly')]",
+                "allowBlobPublicAccess": "[parameters('allowBlobPublicAccess')]",
+                "allowSharedKeyAccess": "[parameters('allowSharedKeyAccess')]",
+                "allowCrossTenantReplication": "[parameters('allowCrossTenantReplication')]",
+                "defaultToOAuthAuthentication": "[parameters('defaultOAuth')]",
+                "networkAcls": {
+                    "bypass": "[parameters('networkAclsBypass')]",
+                    "defaultAction": "[parameters('networkAclsDefaultAction')]",
+                    "ipRules": [],
+                    "virtualNetworkRules": [
+                    ]
+                },
+                "encryption": {
+                    "keySource": "[parameters('keySource')]",
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": "[parameters('encryptionEnabled')]"
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": "[parameters('encryptionEnabled')]"
+                        }
+                        // "table": {
+                        //     "enabled": "[parameters('encryptionEnabled')]"
+                        // },
+                        // "queue": {
+                        //     "enabled": "[parameters('encryptionEnabled')]"
+                        // }
+                    },
+                    "requireInfrastructureEncryption": "[parameters('infrastructureEncryptionEnabled')]"
+                }
+            },
+            "dependsOn": [
+                "Microsoft.Resources/deployments/virtualNetworks_0.8729947271180729"
+            ],
+            "sku": {
+                "name": "[parameters('accountType')]"
+            },
+            "kind": "[parameters('kind')]",
+            "tags": "[variables('tags')]"
+        },
+        {
+            "name": "[concat(parameters('storageAccountName'), '/default')]",
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2021-08-01",
+            "properties": {
+                "restorePolicy": {
+                    "enabled": "[parameters('isContainerRestoreEnabled')]"
+                },
+                "deleteRetentionPolicy": {
+                    "enabled": "[parameters('isBlobSoftDeleteEnabled')]"
+                },
+                "containerDeleteRetentionPolicy": {
+                    "enabled": "[parameters('isContainerSoftDeleteEnabled')]"
+                },
+                "changeFeed": {
+                    "enabled": "[parameters('changeFeed')]"
+                },
+                "isVersioningEnabled": "[parameters('isVersioningEnabled')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('storageAccountName'), '/default')]",
+            "type": "Microsoft.Storage/storageAccounts/fileservices",
+            "apiVersion": "2021-08-01",
+            "properties": {
+                "protocolSettings": {
+                    "smb": {
+                        "versions": "SMB2.1;SMB3.0;SMB3.1.1;",
+                        "authenticationMethods": "NTLMv2;Kerberos;",
+                        "kerberosTicketEncryption": "RC4-HMAC;AES-256;",
+                        "channelEncryption": "AES-128-CCM;AES-128-GCM;AES-256-GCM;"
+                    }
+                },
+                "shareDeleteRetentionPolicy": {
+                    "enabled": "[parameters('isShareSoftDeleteEnabled')]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[concat(concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '/blobServices/default')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2021-08-01",
+            "name": "[concat(parameters('storageAccountName'), '/default/fslogix-profiles')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccountName'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ],
+            "properties": {
+                "accessTier": "TransactionOptimized",
+                "shareQuota": 5120,
+                "enabledProtocols": "SMB"
+            }
+        }
+    ],
+    "outputs": {}
+}

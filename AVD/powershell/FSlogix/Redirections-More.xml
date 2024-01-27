@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--https://docs.microsoft.com/en-us/fslogix/manage-profile-content-cncpt#redirectionsxml-->
+<FrxProfileFolderRedirection ExcludeCommonFolders="0">
+    <Excludes>
+    <Exclude Copy="0">Videos</Exclude>
+    <Exclude Copy="0">Saved Games</Exclude>
+    <Exclude Copy="0">Contacts</Exclude>
+    <Exclude Copy="0">Searches</Exclude>
+    <!--Path can be pointed to %TEMP% via Registry to avoid redirection-->
+    <Exclude Copy="0">Tracing</Exclude>
+    <!--Omit if folder is redirected to the network-->
+    <Exclude Copy="0">Downloads</Exclude>
+    <Exclude Copy="0">Music</Exclude>
+    <!--Omit if GPO manages Recycle Bin or folder redirection manages other folders-->
+    <Exclude Copy="0">$Recycle.Bin</Exclude>
+    <Exclude Copy="0">AppData\LocalLow\Adobe</Exclude>
+    <Exclude Copy="0">AppData\LocalLow\Microsoft</Exclude>
+    <!--Office add-ins and other apps. May impact performance if excluded-->
+    <Exclude Copy="0">AppData\Local\Apps</Exclude>
+    <!--May break per-user installed apps-->
+    <Exclude Copy="0">AppData\Local\Downloaded Installations</Exclude>
+    <!--May impact performance of .NET apps-->
+    <Exclude Copy="0">AppData\Local\Assembly</Exclude>
+    <Exclude Copy="0">AppData\Local\CEF</Exclude>
+    <Exclude Copy="0">AppData\Local\Comms</Exclude>
+    <!--Omit if you need to keep crash dumps for troubleshooting-->
+    <Exclude Copy="0">AppData\Local\CrashDumps</Exclude>
+    <Exclude Copy="0">AppData\Local\Deployment</Exclude>
+    <Exclude Copy="0">AppData\Local\FSLogix</Exclude>
+    <Exclude Copy="0">AppData\Local\Packages</Exclude>
+    <Exclude Copy="0">AppData\Local\VirtualStore</Exclude>
+    <Exclude Copy="0">AppData\Local\CrashDumps</Exclude>
+    <Exclude Copy="0">AppData\Local\Package Cache</Exclude>
+    <Exclude Copy="0">AppData\Local\D3DSCache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\TokenBroker\Cache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Notifications</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Internet Explorer\DOMStore</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Internet Explorer\Recovery</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\MSOIdentityCRL\Tracing</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Messenger</Exclude>
+    <!--Omit if not using Remote Desktop Connection client inside a remote desktop -->
+    <Exclude Copy="0">AppData\Local\Microsoft\Terminal Server Client</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\UEV</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\Application Shortcuts</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\Mail</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\WebCache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\WebCache.old</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\AppCache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\Explorer</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\GameExplorer</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\DNTException</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\IECompatCache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\iecompatuaCache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\Notifications</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\PRICache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\PrivacIE</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\RoamingTiles</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\SchCache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\Temporary Internet Files</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\0030</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Windows\1031</Exclude>
+    <Exclude Copy="0">AppData\Roaming\com.adobe.formscentral.FormsCentralForAcrobat</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Adobe\Acrobat\DC</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Adobe\SLData</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Document Building Blocks</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Windows\Network Shortcuts</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Windows\Printer Shortcuts</Exclude>
+    <Exclude Copy="0">AppData\Roaming\ICAClient\Cache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Macromedia\Flash Player\macromedia.com\support\flashplayer</Exclude>
+    <!--MS Office365-->
+    <Exclude Copy="0">AppData\Local\SquirrelTemp</Exclude>
+    <Exclude Copy="0">AppData\Local\OneDrive\cache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\OneNote\16.0\cache</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Office\SolutionPackages</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Office\16.0\Lync\Tracing</Exclude>
+    <!--MS Teams-->
+    <Exclude Copy="0">AppData\Local\Microsoft\Teams\Current\Locales</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Teams\Packages\SquirrelTemp</Exclude>
+    <Exclude Copy="0">AppData\Local\Microsoft\Teams\current\resources\locales</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft Teams\Logs</Exclude>
+    <!--Details here https://docs.microsoft.com/en-us/microsoftteams/teams-for-vdi#non-persistent-setup-->
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Teams\meeting-addin\Cache</Exclude>
+    <!--Details here https://techcommunity.microsoft.com/t5/fslogix-blog/teams-setup-rapidly-grows-my-profile-disk/ba-p/1539064-->
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Teams\Service Worker</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Teams\Application Cache</Exclude>
+    <!--Reduce the user caching size-->
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Teams\Cache</Exclude>  
+    <!--Details here https://docs.microsoft.com/en-us/microsoftteams/teams-for-vdi#teams-cached-content-exclusion-list-for-non-persistent-setup-->
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Teams\media-stack</Exclude>
+    <!--MS Edge Browser-->
+    <!--Microsoft Edge UWP browser cache-->
+    <Exclude Copy="0">AppData\Local\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache</Exclude>
+    <!--Microsoft Edge (Chromium) cache - size can also be managed via policy-->
+    <Exclude Copy="0">AppData\Local\Microsoft\Edge SxS\User Data\Default\Cache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\BrowserMetrics</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Default\Code Cache\js</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Default\GPUCache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Default\Application Cache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\CertificateRevocation</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\CertificateTransparency</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Crashpad</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\FileTypePolicies</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\InterventionPolicyDatabase</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\MEIPreload</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\PepperFlash</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\OriginTrials</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\pnacl</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Safe Browsing</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\ShaderCache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\SSLErrorAssistant</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Subresource Filter</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\SwReporter</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\WidevineCdm</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Default\JumpListIcons</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Microsoft\Edge\User Data\Default\JumpListIconsOld</Exclude>
+    <!--Google Chrome-->
+    <Exclude Copy="0">AppData\Local\Google</Exclude>
+    <!--Google Chrome brower cache - size can also be managed via policy-->
+    <Exclude Copy="0">AppData\Local\Google\Chrome\User Data\Default\Cache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\BrowserMetrics</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Default\Code Cache\js</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Default\GPUCache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Default\Application Cache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Default\GPUCache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\CertificateRevocation</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\CertificateTransparency</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Crashpad</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\FileTypePolicies</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\InterventionPolicyDatabase</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\MEIPreload</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\PepperFlash</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\OriginTrials</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\pnacl</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Safe Browsing</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\ShaderCache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\SSLErrorAssistant</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Subresource Filter</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\SwReporter</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\WidevineCdm</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Default\JumpListIcons</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Google\Chrome\User Data\Default\JumpListIconsOld</Exclude>
+    <!--Mozilla Firefox Browser-->
+    <Exclude Copy="0">AppData\Local\Mozilla\Firefox\Profiles</Exclude>
+    <!--Paint.net-->
+    <Exclude Copy="0">AppData\Local\paint.net</Exclude>
+    <!--Java-->
+    <!--Only include if the JRE is in the environment. May impact performance of Java apps -->
+    <Exclude Copy="0">AppData\Local\Sun</Exclude>
+    <Exclude Copy="0">AppData\LocalLow\Sun\Java\Deployment\cache</Exclude>
+    <Exclude Copy="0">AppData\LocalLow\Sun\Java\Deployment\log</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Sun\Java\Deployment\cache</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Sun\Java\Deployment\log</Exclude>
+    <Exclude Copy="0">AppData\Roaming\Sun\Java\Deployment\tmp</Exclude>
+</Excludes>
+</FrxProfileFolderRedirection>

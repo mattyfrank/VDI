@@ -1,0 +1,2 @@
+Datacenter,UnitName,NamingScheme,DiskSize,Memory,NumCPU,Template,Cluster,Network,ComputerName,Administrators
+DC2,UNIT,2022,120,12,2,"vlab_win10-slim_20h2_20210824","DC1-C03-T4","DC1-C03-VLAN344","Xen-2022","matthew.franklin"

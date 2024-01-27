@@ -1,0 +1,153 @@
+# GitLab CI/CD Pipeline
+# -------------------------------------------------------------------------- #
+image:
+  name: registry.gitlab.com/gitlab-org/terraform-images/releases/1.4
+# define an image: https://docs.gitlab.com/ee/ci/docker/using_docker_images.html#define-image-in-the-gitlab-ciyml-file
+# image versions here: https://gitlab.com/gitlab-org/terraform-images/-/blob/master/.gitlab-ci.yml
+
+# Set variables for Terraform state. State file will be named the same as branch name
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}
+  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_COMMIT_BRANCH}
+
+# Create a cache on the runner for file storage
+cache:
+  key: ${CI_COMMIT_BRANCH}
+  paths:
+    - ${TF_ROOT}/.terraform
+
+before_script:
+  - cd ${TF_ROOT}
+  - export TF_VAR_env=${CI_COMMIT_BRANCH}
+  
+stages:
+  - validate
+  - remove
+  - import
+  - replace
+  - plan
+  - apply
+  - config
+  - teardown
+
+# Validate Terraform code
+job_tf-validate:
+  stage: validate
+  script:
+    - gitlab-terraform version
+    - gitlab-terraform init
+    - gitlab-terraform validate
+
+# Confirm sessions pools have valid registration tokens
+job_ps-token-check:
+  stage: validate
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  #image versions here : https://hub.docker.com/_/microsoft-azure-powershell
+  #image: mcr.microsoft.com/azure-powershell:latest
+  #Latest Stable -> azure-powershell:${VERSION}-ubuntu-20.04
+  #image: mcr.microsoft.com/azure-powershell:7.5.0-ubuntu-18.04
+  image: mcr.microsoft.com/azure-powershell:9.5.0-ubuntu-20.04
+
+  script:
+    - pwsh -NoProfile -File ./scripts/Update-AVDRegistrationToken.ps1
+
+# -------------------------------------------------------------------------- #
+# nonprod environment
+# -------------------------------------------------------------------------- #
+
+# Run Terraform remove to remove artifact from tf state
+job_tf-remove:
+  stage: remove
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  script:
+    - gitlab-terraform init
+    - gitlab-terraform state rm ${TF_REMOVE}
+  rules: 
+    - if: '$TF_REMOVE'
+  allow_failure: false
+
+# Run Terraform import if the variable exists
+job_tf-import:
+  stage: import
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  script:
+    - gitlab-terraform init
+    - gitlab-terraform import -var-file="vars/vars_${CI_COMMIT_BRANCH}.tfvars" ${TF_IMPORT}
+  rules: 
+    - if: '$TF_IMPORT'
+  allow_failure: false
+
+# Run Terraform replace if the variable is not null, call branch tfvars
+job_tf-replace:
+  stage: replace
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  script:
+    - gitlab-terraform plan -var-file="vars/vars_${CI_COMMIT_BRANCH}.tfvars" -replace=${TF_REPLACE}
+    - gitlab-terraform plan-json
+  rules: 
+    - if: '$TF_REPLACE != null'
+  artifacts:
+    name: plan
+    paths:
+      - ${TF_ROOT}/plan.cache
+    reports:
+      terraform: ${TF_ROOT}/plan.json
+  allow_failure: false
+
+# Run Terraform plan if replace is null, call branch tfvars
+job_tf-plan:
+  stage: plan
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  script:
+    - gitlab-terraform plan -var-file="vars/vars_${CI_COMMIT_BRANCH}.tfvars"
+    - gitlab-terraform plan-json
+  rules: 
+    - if: '$TF_REPLACE == null'
+  artifacts:
+    name: plan
+    paths:
+      - ${TF_ROOT}/plan.cache
+    reports:
+      terraform: ${TF_ROOT}/plan.json
+  allow_failure: false
+
+# Manual run Terraform apply
+job_tf-apply-manual:
+  stage: apply
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  script:
+    - gitlab-terraform apply
+    - gitlab-terraform output -json > terraform_output.json
+  artifacts:
+    name: output
+    paths:
+      - ${TF_ROOT}/terraform_output.json
+  when: manual
+  allow_failure: false # prevent continuation without completion
+
+# Configure session host pool desktop names not supported in Terraform
+job_ps-config:
+  stage: config
+  #image: mcr.microsoft.com/azure-powershell:latest 
+  image: mcr.microsoft.com/azure-powershell:9.5.0-ubuntu-20.04
+  environment:
+    name: ${CI_COMMIT_BRANCH}
+  script:
+    - pwsh -NoProfile -File ./scripts/Update-AVDDesktopNames.ps1
+    - pwsh -NoProfile -File ./scripts/Set-BlobContent.ps1
+  dependencies:
+    - job_tf-apply-manual    
+
+# ########################################################################## #
+# PRODUCTION ENVIRONMENT
+# ########################################################################## #
+
+# -------------------------------------------------------------------------- #
+# BCDR
+# -------------------------------------------------------------------------- #

@@ -1,0 +1,378 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        //Azure Region
+        "locationName": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        //Environment Type
+        "env" : {
+            "type": "string",
+            "defaultValue": "nonprod",
+            "allowedValues": [
+                "nonprod",
+                "prod"
+            ]
+        },
+        // Num of VMs to deploy
+        "NumberOfvms": {
+            "type": "int",
+            "defaultValue": 1
+        },
+        //ComputerName Prefix
+        "vmNamePrefix": {
+            "type": "String",
+            "maxLength":14
+        },
+        //Azure Subnet ID
+        "subnetId": {
+            "type": "string"
+        },
+        //Source Image.ID
+        "imageID": {
+            "type": "string",
+            "defaultValue":""
+        },
+        //VM Profile Size, pre-approved values 
+        "vmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_B2ms",
+                "Standard_D2s_v5",
+                "Standard_D2as_v5",
+                "Standard_D4s_v5",
+                "Standard_D4as_v5",
+                "Standard_D8s_v5",
+                "Standard_D8as_v5"
+            ],
+            "defaultValue": "Standard_B2ms"
+        },
+        //Workspace Agent
+        "workspaceId":{
+            "type": "string",
+            "defaultValue":""
+        },
+        "workspaceKey":{
+            "type": "securestring",
+            "defaultValue":""
+        },
+        // Enable Boot Diagnostics 
+        "BootDiagnostics": {
+            "type":"bool",
+            "defaultValue":true
+        },
+        "localAdmin": {
+            "type": "securestring",
+            "defaultValue":"AVDadmin"
+        },
+        "localPassword": {
+            "type": "securestring"
+        },
+        "domainJoinUser": {
+            "type": "securestring",
+            "defaultValue":""
+        },
+        "domainJoinPassword": {
+            "type": "securestring",
+            "defaultValue":""
+        },
+        "DomainName": {
+            "type": "string",
+            "defaultValue":""
+        },
+        //OU path in DistinguishedName format
+        "OUpath": {
+            "type": "string",
+            "defaultValue":""
+        },
+        //AVD HostPool Registration Token
+        "HostPoolToken": {
+            "type": "securestring",
+            "defaultValue":""
+        },
+        //HostPool Name to join
+        "HostPoolName": {
+            "type": "string",
+            "defaultValue":""
+        },
+        //URL to install AVD Agents
+        "AVDAgentURL": {
+            "type": "string",
+            "defaultValue":""
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "storageAccountKey": {
+            "type": "securestring"
+        },
+        "vmScriptBlobURL": {
+            "type": "string"
+        },
+        //ScheduledTask Provisioning ID
+        "DeploymentID" : {
+            "type": "string",
+            "defaultValue" : "",
+            "metadata": {
+                "description": "Prod='P01228FF'|NonProd='P01229EF'"
+            }
+        }
+    },
+    "variables": {
+        "tags": {
+            "description": "Azure Virtual Desktop",
+            "team": "VDI_Team",
+            "env": "[parameters('env')]",
+            "managedBy": "PowerShell"
+        }
+    },
+    "resources": [
+    //Network Cards
+    {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2020-11-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '-nic')]",
+        "tags": "[variables('tags')]",
+        "location": "[parameters('locationName')]",
+        "copy": {
+            "name": "vm-nic-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+        "properties": {
+            "ipConfigurations": [
+                {
+                    "name": "internal",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id" : "[parameters('subnetId')]"
+                        }
+                    }
+                }
+            ]
+        },
+        "dependsOn": [
+        ]
+    },
+    //SessionHosts
+    {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2021-03-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex())]",
+        "dependsOn": [
+            "[concat('Microsoft.Network/networkInterfaces/', concat(parameters('vmNamePrefix'), '-', copyindex(), '-nic'))]"
+        ],
+        "copy": {
+            "name": "vm-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+        "location": "[parameters('locationName')]",
+        "tags": "[variables('tags')]",
+        "properties": {
+            "hardwareProfile": {
+                "vmSize": "[parameters('vmSize')]"
+            },
+            "storageProfile": {
+                "imageReference": {
+                    "id": "[parameters('imageID')]"
+                },
+                "osDisk": {
+                    "osType": "Windows",
+                    "createOption": "FromImage",
+                    "caching": "ReadWrite",
+                    "deleteOption": "Delete",
+                    "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                    }
+                },
+                "dataDisks": []
+            },
+            "osProfile": {
+                "computerName": "[concat(parameters('vmNamePrefix'), '-', copyindex())]",
+                "adminUsername": "[parameters('localAdmin')]",
+                "adminPassword": "[parameters('localPassword')]",
+                "windowsConfiguration": {
+                    "timeZone": "Pacific Standard Time"
+                },
+                "secrets": [],
+                "allowExtensionOperations": true
+            },
+            "licenseType": "Windows_Client",
+            "networkProfile": {
+                "networkInterfaces": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmNamePrefix'), '-', copyindex(),'-nic'))]",
+                        "properties": {"deleteOption": "Delete"}
+                    }
+                ]
+            },
+            "diagnosticsProfile": {
+                "bootDiagnostics": {
+                    "enabled": "[parameters('BootDiagnostics')]"
+                }
+            }
+        }
+    },
+    //Domain Join Extensions
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2021-03-01",
+        //"name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '-domainJoin')]",
+        "name": "[concat(concat(parameters('vmNamePrefix'), '-', copyindex()), '/', concat(parameters('vmNamePrefix'), '-', copyindex(),'-domainJoin'))]",
+        "location": "[parameters('locationName')]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), '-', copyindex())]"
+        ],
+        "copy": {
+            "name": "vm-domain-join-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+        "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "JsonADDomainExtension",
+            "typeHandlerVersion": "1.3",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "Name": "[parameters('domainName')]",
+                "OUPath": "[parameters('OUpath')]",
+                "User": "[parameters('domainJoinUser')]",
+                "Restart": "true",
+                "Options": "3"
+            },
+            "protectedSettings": {
+                "Password": "[parameters('domainJoinPassword')]"
+            }
+        }
+    },
+    //Azure Monitoring Agent
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2020-06-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '/AzureMonitorWindowsAgent')]",
+        "location": "[parameters('locationName')]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), '-', copyindex()), '/extensions/', concat(parameters('vmNamePrefix'), '-', copyindex(), '-domainJoin'))]"
+        ],
+        "copy": {
+            "name": "az-monitor-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+        "properties": {
+            "publisher": "Microsoft.Azure.Monitor",
+            "type": "AzureMonitorWindowsAgent",
+            "typeHandlerVersion": "1.0",
+            "autoUpgradeMinorVersion": true,
+            "enableAutomaticUpgrade":true
+        }
+    },
+    //Microsoft Monitoring Agent
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2020-06-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '/DAextension')]",
+        "location": "[parameters('locationName')]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), '-', copyindex(), '/extensions/AzureMonitorWindowsAgent'))]"
+        ],
+        "copy": {
+            "name": "da-monitor-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+            "properties": {
+                "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                "type": "DependencyAgentWindows",
+                "typeHandlerVersion": "9.5",
+                "autoUpgradeMinorVersion": true,
+                "enableAutomaticUpgrade":true
+            }
+    },
+    //Insights Log Analytics
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2020-06-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '/Microsoft.Insights.LogAnalyticsAgent')]",
+        "location": "[parameters('locationName')]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), '-', copyindex(), '/extensions//DAextension'))]"
+        ],
+        "copy": {
+            "name": "insight-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },  
+        "properties": {
+            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "MicrosoftMonitoringAgent",
+            "typeHandlerVersion": "1.0",
+            "settings": {
+                "workspaceId": "[parameters('workspaceId')]"
+            },
+            "protectedSettings": {
+                "workspaceKey": "[parameters('workspaceKey')]"
+            }
+        }
+    },
+    //CM BootStrap Extension
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2021-03-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '/ccmsetup')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), '-', copyindex(), '/extensions/Microsoft.Insights.LogAnalyticsAgent'))]"
+        ],
+        "copy": {
+            "name": "ccm-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+        "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.10",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File cmbootstrap.ps1', ' -ProvisionID ', parameters('deploymentID'))]"
+            },
+            "protectedSettings": {
+                "storageAccountName": "[parameters('storageAccountName')]",
+                "storageAccountKey": "[parameters('storageAccountKey')]",
+                "fileUris": [
+                    "[parameters('vmScriptBlobURL')]"
+                ]
+            }
+        }
+    },
+    //DSC (AVD Registration)
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2021-03-01",
+        "name": "[concat(parameters('vmNamePrefix'), '-', copyindex(), '/dscextension')]",
+
+        "location": "[parameters('locationName')]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), '-', copyindex()), '/extensions/ccmsetup')]"
+        ],
+        "copy": {
+            "name": "dsc-ext-loop",
+            "count": "[parameters('NumberOfvms')]"
+        },
+        "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.83",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "modulesUrl": "[parameters('AVDAgentURL')]",
+                "configurationFunction": "Configuration.ps1\\AddSessionHost"
+            },
+            "protectedSettings": {
+                "properties": {
+                    "hostPoolName": "[parameters('hostpoolName')]",
+                    "registrationInfoToken": "[parameters('HostPoolToken')]"
+                }
+            }
+        }
+    }
+  ]
+}
